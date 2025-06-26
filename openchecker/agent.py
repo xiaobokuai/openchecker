@@ -249,7 +249,9 @@ def check_release_content(project_url):
         except Exception as e:
             logging.error("Failed to get latest release for repo: {} \n Error: {}".format(project_url, e))
             return {"is_released": False, "signature_files": [], "release_notes": []}, "Not found"
-
+    elif "gitcode.com" in project_url:
+        # todo gitcode api
+        pass
     else:
         logging.info("Failed to do release files check for repo: {} \n Error: {}".format(project_url, "Not supported platform."))
         return {"is_released": False, "signature_files": [], "release_notes": []}, "Not supported platform."
@@ -273,7 +275,8 @@ def callback_func(ch, method, properties, body):
 
     logging.info(f"callback func called at {datetime.now()}")
 
-    message = json.loads(body.decode('utf-8'))
+    # message = json.loads(body.decode('utf-8'))
+    message = body
     command_list = message.get('command_list')
     project_url = message.get('project_url')
     commit_hash = message.get("commit_hash")

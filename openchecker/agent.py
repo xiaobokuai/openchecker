@@ -250,7 +250,22 @@ def check_release_content(project_url):
             logging.error("Failed to get latest release for repo: {} \n Error: {}".format(project_url, e))
             return {"is_released": False, "signature_files": [], "release_notes": []}, "Not found"
     elif "gitcode.com" in project_url:
-        # todo gitcode api
+        access_token = config["Gitcode"]["access_key"]
+
+        url = f"https://api.gitcode.com/api/v5/repos/{owner_name}/{repo_name}/releases/latest?access_token={access_token}"
+        try:
+            response = requests.get(url)
+            if response.status_code != 200:
+                return {"is_released": False, "signature_files": [], "release_notes": []}, "Not found"
+            tag_name = response.json()["tag_name"]
+            latest_release_url = (
+                # Wait for gitcode openapi
+                f"https://raw.gitcode.com/{owner_name}/{repo_name}/archive/refs/heads/{tag_name}.zip"
+            )
+            print(latest_release_url)
+        except Exception as e:
+            logging.error(f"Failed to get latest release for repo: {project_url} \n Error: {e}")
+            return {"is_released": False, "signature_files": [], "release_notes": []}, "Not found"
         pass
     else:
         logging.info("Failed to do release files check for repo: {} \n Error: {}".format(project_url, "Not supported platform."))
@@ -275,8 +290,7 @@ def callback_func(ch, method, properties, body):
 
     logging.info(f"callback func called at {datetime.now()}")
 
-    # message = json.loads(body.decode('utf-8'))
-    message = body
+    message = json.loads(body.decode('utf-8'))
     command_list = message.get('command_list')
     project_url = message.get('project_url')
     commit_hash = message.get("commit_hash")
